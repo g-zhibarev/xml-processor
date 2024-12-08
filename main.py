@@ -4,6 +4,7 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, Company, Phone
+import configparser
 
 
 def get_companies_from_xml(companies_file):
@@ -121,12 +122,16 @@ def remove_duplicates(companies):
     return unique_companies
 
 
-def add_records():
-    user = 'superuser'
-    password = '1234'
-    host = 'localhost'
-    port = 5432
-    name_db = 'company_from_xml'
+def add_records(unique_companies):
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
+    user = config['database']['user']
+    password = config['database']['password']
+    host = config['database']['host']
+    port = config['database']['port']
+    name_db = config['database']['name_db']
+
     DATABASE_URL = f'postgresql://{user}:{password}@{host}:{port}/{name_db}'
 
     engine = create_engine(DATABASE_URL)
@@ -158,16 +163,17 @@ def add_records():
         session.close()
 
 
-companies = get_companies_from_xml('companies.xml')
-valid_companies = validate_companies(companies)
-unique_companies = remove_duplicates(valid_companies)
+if __name__ == "__main__":
+    companies = get_companies_from_xml('companies.xml')
+    valid_companies = validate_companies(companies)
+    unique_companies = remove_duplicates(valid_companies)
 
-print(f'Число невалидных компаний: {len(companies) - len(unique_companies)}')
-yes_no = input(
-    f'Дублирующиеся компании, у которых дата обновления записи '
-    f'более старая, и компании, у которых невалидные данные, '
-    f'будут отброшены при записи в БД. '
-    f'Вы хотите продолжить? (y/n) \n'
-)
-if yes_no == 'y':
-    add_records()
+    print(f'Число невалидных компаний: {len(companies) - len(unique_companies)}')
+    yes_no = input(
+        f'Дублирующиеся компании, у которых дата обновления записи '
+        f'более старая, и компании, у которых невалидные данные, '
+        f'будут отброшены при записи в БД. '
+        f'Вы хотите продолжить? (y/n) \n'
+    )
+    if yes_no == 'y':
+        add_records(unique_companies)
