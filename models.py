@@ -13,14 +13,14 @@ class BaseModel(Base):
 class Phone(BaseModel):
     __tablename__ = 'phone'
     phone = Column(Text, nullable=False)
-    company_id = Column(Integer, ForeignKey('company.id'))
+    company_id = Column(Integer, ForeignKey('company.id'), nullable=False)
     company = relationship("Company", back_populates="phone")
 
 
 class Company(BaseModel):
     __tablename__ = 'company'
-    ogrn = Column(Numeric, unique=True, nullable=False)
-    inn = Column(Numeric, nullable=False)
+    ogrn = Column(Numeric(13, 0), unique=True, nullable=False)
+    inn = Column(Numeric(10, 0), nullable=False)
     name = Column(Text, nullable=True)
     phone = relationship("Phone", back_populates="company")
-    update = Column(Date, nullable=True)
+    update = Column(Date, nullable=False)
